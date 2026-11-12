@@ -22,7 +22,7 @@
 # Es liest eine XML-Datei und macht daraus einen "Baum" aus Elementen,
 # den wir mit einer for-Schleife durchlaufen können.
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class GpxFehler(Exception):
@@ -93,14 +93,19 @@ def zeit_umwandeln(text):
 
     Das "Z" am Ende bedeutet UTC (Weltzeit). datetime.fromisoformat versteht
     das "Z" erst ab Python 3.11, darum ersetzen wir es durch "+00:00".
+    Zeiten ganz ohne Zeitzone behandeln wir ebenfalls als UTC. Sonst kann
+    Python Zeiten mit und ohne Zeitzone nicht voneinander abziehen (TypeError).
     Ist der Text kaputt oder fehlt, kommt None zurück.
     """
     if text is None:
         return None
     try:
-        return datetime.fromisoformat(text.strip().replace("Z", "+00:00"))
+        zeit = datetime.fromisoformat(text.strip().replace("Z", "+00:00"))
     except ValueError:
         return None
+    if zeit.tzinfo is None:
+        zeit = zeit.replace(tzinfo=timezone.utc)
+    return zeit
 
 
 def punkt_aus_element(element):
@@ -150,9 +155,12 @@ def gpx_einlesen(dateipfad):
         # rtept = Punkt einer geplanten Route (gibt es in manchen Apps)
         if tag == "trkpt" or tag == "rtept":
             punkte.append(punkt_aus_element(element))
-        elif tag == "name" and name is None and element.text:
-            # Der erste Name in der Datei ist meistens der Name der Wanderung
-            name = element.text.strip()
+        elif (tag == "trk" or tag == "rte" or tag == "metadata") and name is None:
+            # Der Name der Wanderung steht direkt in <trk>, <rte> oder <metadata>.
+            # Namen tiefer im Baum, z. B. <author><name>, sind Personen, keine Touren.
+            for kind in element:
+                if tag_name(kind) == "name" and kind.text:
+                    name = kind.text.strip()
 
     # 3. Prüfen, ob genug Punkte gefunden wurden (für eine Linie braucht man 2)
     if len(punkte) < 2:

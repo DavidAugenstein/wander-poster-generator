@@ -5,9 +5,12 @@
 
 import os
 
-# Umlaute werden für den Dateinamen ersetzt, weil manche Programme mit
-# Sonderzeichen in Dateinamen Probleme haben.
-ERSETZUNGEN = {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}
+# Umlaute und Akzente werden für den Dateinamen ersetzt, weil manche Programme
+# mit Sonderzeichen in Dateinamen Probleme haben.
+ERSETZUNGEN = {
+    "ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss",
+    "é": "e", "è": "e", "á": "a", "à": "a", "ó": "o", "ñ": "n", "ç": "c",
+}
 
 # Auflösung in dpi (Punkte pro Zoll). Passt zu den Formaten in poster.py:
 # 1240 Pixel / 150 dpi = 8,27 Zoll = 21 cm = A4-Breite
