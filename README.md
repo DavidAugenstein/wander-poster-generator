@@ -29,11 +29,14 @@ den grünen Pfeil klicken.
 
 Zum Ausprobieren ohne eigene GPX-Datei: `beispiele/harz_brocken.gpx` im Formular auswählen.
 
+**Tests** (ohne Internet, im Hauptordner): `python tests.py`
+
 ## Ordnerstruktur
 
 | Ordner / Datei | Inhalt |
 |---|---|
 | `start.py` | startet das Programm |
+| `tests.py` | einfache Tests für alle Dateien |
 | `installieren.bat`, `starten.bat` | Doppelklick-Dateien für Windows |
 | `webserver/` | Webseite und Flask-Server (Rahmen) |
 | `david/` | GPX einlesen, Karte, Texte |
