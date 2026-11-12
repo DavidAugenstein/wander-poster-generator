@@ -1,0 +1,16 @@
+/* style.css – ein paar eigene Gestaltungsregeln zusätzlich zu Bootstrap */
+
+body {
+  background: #f4f2ed;
+}
+
+/* Vorschau des Posters: nie breiter als die Spalte, nie höher als das Fenster */
+.poster-vorschau {
+  max-width: 100%;
+  max-height: 80vh;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.platzhalter {
+  min-height: 300px;
+}

@@ -1,0 +1,130 @@
+<!doctype html>
+<!--
+  index.html – die Webseite (Rahmen, geschrieben von Claude)
+
+  Aufbau: links das Formular, rechts das fertige Poster.
+  - Bootstrap (eine Zeile im <head>) sorgt für das Aussehen.
+  - Alles in doppelten geschweiften Klammern bzw. Klammer-Prozent füllt Flask aus
+    (z. B. die Auswahllisten oder das Ergebnis).
+  - Es gibt kein JavaScript: Formular abschicken -> Seite lädt neu.
+-->
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wander Poster Generator</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container py-4">
+
+  <h1 class="mb-1">Wander Poster Generator</h1>
+  <p class="text-secondary mb-4">GPX-Datei hochladen, Einstellungen wählen, Poster herunterladen.</p>
+
+  {% if fehler %}
+    <div class="alert alert-danger">{{ fehler }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- ===== Linke Spalte: Formular ===== -->
+    <div class="col-lg-4">
+      <!-- enctype ist nötig, damit Dateien mitgeschickt werden können -->
+      <form action="/erstellen" method="post" enctype="multipart/form-data" class="card card-body">
+        <input type="hidden" name="letzter_dateiname" value="{{ dateiname }}">
+
+        <h2 class="h6 text-uppercase text-secondary">1. Route</h2>
+        <label class="form-label" for="gpx_datei">GPX-Datei</label>
+        <input class="form-control" type="file" id="gpx_datei" name="gpx_datei" accept=".gpx">
+        {% if dateiname %}
+          <div class="form-text">Aktuell: {{ dateiname }} (neue Datei wählen zum Ersetzen)</div>
+        {% endif %}
+
+        <h2 class="h6 text-uppercase text-secondary mt-4">2. Texte</h2>
+        <label class="form-label" for="titel">Titel (leer = Name aus der GPX-Datei)</label>
+        <input class="form-control mb-2" type="text" id="titel" name="titel" value="{{ e.titel }}">
+        <label class="form-label" for="untertitel">Untertitel</label>
+        <input class="form-control mb-2" type="text" id="untertitel" name="untertitel" value="{{ e.untertitel }}">
+        <label class="form-label" for="schriftart">Schriftart</label>
+        <select class="form-select" id="schriftart" name="schriftart">
+          {% for name in optionen.schriftarten %}
+            <option value="{{ name }}" {% if name == e.schriftart %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <h2 class="h6 text-uppercase text-secondary mt-4">3. Karte und Route</h2>
+        <label class="form-label" for="kartenstil">Kartenstil</label>
+        <select class="form-select mb-2" id="kartenstil" name="kartenstil">
+          {% for schluessel, name in optionen.kartenstile.items() %}
+            <option value="{{ schluessel }}" {% if schluessel == e.kartenstil %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label" for="routen_farbe">Farbe</label>
+            <input class="form-control form-control-color w-100" type="color" id="routen_farbe" name="routen_farbe" value="{{ e.routen_farbe }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="routen_dicke">Dicke (1–20)</label>
+            <input class="form-control" type="number" min="1" max="20" id="routen_dicke" name="routen_dicke" value="{{ e.routen_dicke }}">
+          </div>
+        </div>
+        <label class="form-label" for="rand">Ausschnitt (Rand um die Route)</label>
+        <select class="form-select" id="rand" name="rand">
+          {% for name in optionen.raender %}
+            <option value="{{ name }}" {% if name == e.rand %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <h2 class="h6 text-uppercase text-secondary mt-4">4. Poster</h2>
+        <label class="form-label" for="format">Format</label>
+        <select class="form-select mb-3" id="format" name="format">
+          {% for name in optionen.formate %}
+            <option value="{{ name }}" {% if name == e.format %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="hoehenprofil" name="hoehenprofil" {% if e.hoehenprofil %}checked{% endif %}>
+          <label class="form-check-label" for="hoehenprofil">Höhenprofil anzeigen</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="statistik" name="statistik" {% if e.statistik %}checked{% endif %}>
+          <label class="form-check-label" for="statistik">Statistik anzeigen</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="massstab" name="massstab" {% if e.massstab %}checked{% endif %}>
+          <label class="form-check-label" for="massstab">Maßstab anzeigen</label>
+        </div>
+
+        <button class="btn btn-primary mt-4" type="submit">Poster erstellen</button>
+      </form>
+    </div>
+
+    <!-- ===== Rechte Spalte: Ergebnis ===== -->
+    <div class="col-lg-8">
+      {% if ergebnis %}
+        <div class="card card-body text-center">
+          <!-- ?v=... verhindert, dass der Browser ein altes Bild aus dem Speicher zeigt -->
+          <img class="poster-vorschau mx-auto" src="/ausgabe/{{ ergebnis.png }}?v={{ range(100000) | random }}" alt="Fertiges Poster">
+          <div class="mt-3">
+            <a class="btn btn-success" href="/ausgabe/{{ ergebnis.png }}?download=1">Als PNG herunterladen</a>
+            <a class="btn btn-success" href="/ausgabe/{{ ergebnis.pdf }}?download=1">Als PDF herunterladen</a>
+          </div>
+        </div>
+      {% else %}
+        <div class="card card-body text-secondary platzhalter">
+          <p class="mb-2">Hier erscheint dein Poster.</p>
+          <ol class="mb-0">
+            <li>Links eine GPX-Datei auswählen.</li>
+            <li>Einstellungen wählen.</li>
+            <li>„Poster erstellen“ klicken. Das kann ein paar Sekunden dauern.</li>
+          </ol>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,3 @@
+flask
+staticmap
+Pillow

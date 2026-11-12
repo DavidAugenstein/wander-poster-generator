@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Nextcloud
+.sync_*
+*.conflict*
+
+# Word-Sperrdateien
+~$*
+
+# Erzeugte Poster und hochgeladene Routen
+ausgabe/
